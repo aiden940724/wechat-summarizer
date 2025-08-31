@@ -29,7 +29,6 @@ interface BatchResponse {
 
 const BatchSummarize: React.FC = () => {
   const [urls, setUrls] = useState('');
-  const [accountName, setAccountName] = useState('批量导入');
   const [isProcessing, setIsProcessing] = useState(false);
   const [results, setResults] = useState<BatchResult[]>([]);
   const [stats, setStats] = useState<{total: number, success: number, fail: number} | null>(null);
@@ -67,7 +66,7 @@ const BatchSummarize: React.FC = () => {
     try {
       const response = await axios.post<BatchResponse>('/api/batch-summarize', {
         urls: urlList,
-        accountName: accountName.trim() || '批量导入'
+        accountName: '批量导入'
       });
 
       if (response.data.success) {
@@ -91,19 +90,7 @@ const BatchSummarize: React.FC = () => {
     }
   };
 
-  const isValidWeChatUrl = (url: string): boolean => {
-    try {
-      const urlObj = new URL(url);
-      return urlObj.hostname === 'mp.weixin.qq.com' && 
-             urlObj.pathname === '/s';
-    } catch {
-      return false;
-    }
-  };
-
   const urlList = urls.split('\n').map(url => url.trim()).filter(url => url.length > 0);
-  const validUrls = urlList.filter(isValidWeChatUrl);
-  const invalidUrls = urlList.filter(url => !isValidWeChatUrl(url));
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -123,18 +110,6 @@ const BatchSummarize: React.FC = () => {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-medium mb-2">
-                公众号名称（可选）
-              </label>
-              <Input
-                value={accountName}
-                onChange={(e) => setAccountName(e.target.value)}
-                placeholder="输入公众号名称，默认为'批量导入'"
-                className="max-w-md"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-2">
                 微信文章链接（每行一个）
               </label>
               <Textarea
@@ -148,20 +123,6 @@ https://mp.weixin.qq.com/s?__biz=yyy&mid=yyy&idx=1&sn=yyy`}
               />
             </div>
 
-            {urlList.length > 0 && (
-              <div className="text-sm space-y-1">
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-500" />
-                  <span>有效链接: {validUrls.length}</span>
-                </div>
-                {invalidUrls.length > 0 && (
-                  <div className="flex items-center gap-2">
-                    <XCircle className="h-4 w-4 text-red-500" />
-                    <span>无效链接: {invalidUrls.length}</span>
-                  </div>
-                )}
-              </div>
-            )}
 
             {error && (
               <Alert variant="destructive">
