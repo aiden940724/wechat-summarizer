@@ -1,0 +1,60 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model WeChatAccount {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  displayName String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  articles    Article[]
+  
+  @@map("wechat_accounts")
+}
+
+model Article {
+  id          String   @id @default(cuid())
+  title       String
+  content     String
+  url         String   @unique
+  publishDate DateTime
+  author      String?
+  
+  accountId   String
+  account     WeChatAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  
+  summary     Summary?
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@map("articles")
+}
+
+model Summary {
+  id        String   @id @default(cuid())
+  content   String
+  keyPoints String   // JSON string of key points array
+  sentiment String?  // positive, negative, neutral
+  category  String?  // auto-categorized topic
+  
+  articleId String   @unique
+  article   Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@map("summaries")
+}
